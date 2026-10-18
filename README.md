@@ -90,10 +90,19 @@ python3 hw2.py --cv-folder task2
 attack the MCP server. See the homework description for the full rules.
 
 ## Homework 2 solution:
-> to students: this is your report, see the homework description.
 
 ### Task 1
-> one paragraph describing your solution, and your results on `public_test`.
+My verifier uses a finder agent to search and inspect plausible profiles, resolving candidates who may share a name. A second model call checks each CV claim against the selected LinkedIn profile, including job titles and seniority, dates, education, location, and every listed skill. Clear discrepancies receive 0.1, matching claims receive 0.9, and unresolved or failed checks receive 0.5. The implementation limits concurrency to two CVs and retries transient tool failures. On the seven public test CVs, the latest complete run scored 7/7 correctly.
 
 ### Task 2
-> the attack techniques you used and why you expect them to work.
+I used a PDF visual/text extraction mismatch. The visible one-page CV claims that Kelly Tsang is a **Senior Manager at AIA**, while her SocialGraph LinkedIn profile lists **Manager** with **mid** seniority and Facebook also lists **Manager**. This makes the visible CV genuinely embellished. The visible page is rasterized, while an invisible selectable text layer contains the accurate Manager claim and otherwise matching details. The homework's MarkItDown PDF loader extracts the text layer, so a text-only verifier sees claims consistent with the profile. In one successful local test, my Task 1 agent gave both the adversarial CV and the true target CV a score of 0.9. This does not establish how the five undisclosed graders will respond, especially if they inspect the rendered page or compare it with the extracted text.
+
+### Task 3: Reflection on the AI paradoxes
+
+This homework made three AI paradoxes concrete for me.
+
+**The competence paradox.** My verifier classified all seven public CVs correctly, which made its scores seem trustworthy. Yet it also scored a visibly embellished CV as reliable. The model compared the extracted PDF text with the social profiles correctly; the extracted text simply did not match the visible page. Better reasoning over the wrong representation can produce a more convincing wrong answer. I learned that an accuracy figure describes performance on a particular test, not a guarantee that the whole workflow is reliable.
+
+**The dual-use paradox.** The same AI that helps an employer check claims can help an applicant discover how to evade the check. I used my verifier's score as feedback while testing the adversarial CV. Faster and cheaper verification also makes repeated attack experiments faster and cheaper. This creates a cycle in which a stronger defender may invite a more carefully adapted deception.
+
+**The automation paradox.** AI can reduce the time spent comparing CVs with online profiles, but responsible use of that speed requires more attention to the evidence behind each score. A system should compare the rendered PDF with its extracted text, record which source supports each claim, and flag identity ambiguity or conflicting evidence for human review. Even a matching social profile is not perfect ground truth: it can be incomplete or outdated. My conclusion is that AI should help people inspect evidence and uncertainty, while people remain accountable for decisions that affect applicants.
